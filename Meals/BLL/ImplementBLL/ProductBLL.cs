@@ -39,7 +39,7 @@ namespace Meals.BLL.ImplementBLL
             };
 
             var result = _product.CreateProduct(product);
-
+            _logger.LogDebug("OK");
 
             return result;
         }
@@ -57,7 +57,7 @@ namespace Meals.BLL.ImplementBLL
                 ModifyDate = DateTime.Now
             };
             var result = _product.ModifyProduct(product);
-
+            _logger.LogDebug("OK");
 
             return result;
         }
@@ -65,14 +65,21 @@ namespace Meals.BLL.ImplementBLL
         public ResultObj RemoveProduct(int entity)
         {
             ResultObj result = new ResultObj();
-            if (_context.Boms.Where(x => x.ProductId == entity).Count() < 1 && _context.OrderDetails.Where(x => x.ProductId == entity).Count() < 1)
+            try
             {
-                result = _product.RemoveProduct(entity);
-                
-            }
-            else result.Message= "曾經被下過訂單或是有關連到BOM不可以刪除";
+                if (_context.Boms.Where(x => x.ProductId == entity).Count() < 1 && _context.OrderDetails.Where(x => x.ProductId == entity).Count() < 1)
+                {
+                    result = _product.RemoveProduct(entity);
 
-            return result;
+                }
+                else result.Message = "曾經被下過訂單或是有關連到BOM不可以刪除";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInformation(ex.StackTrace);
+            }
+
+                return result;
         }
     }
 }

@@ -21,20 +21,20 @@ namespace Meals.Controllers
             _bom = bom;
         }
         [HttpPost]
-        public ResultObj CreateBom(List<BomDTO> entity)
+        public async Task<ResultObj> CreateBom(List<BomDTO> entity)
         {
-            return _bom.CreateBom(entity);
+            return await Task.Run(() => _bom.CreateBom(entity));
         }
         [HttpPut]
-        public ResultObj ModifyBom(List<BomDTO> entity)
+        public async Task<ResultObj> ModifyBom(List<BomDTO> entity)
         {
-            return _bom.ModifyBom(entity);
+            return await Task.Run(() => _bom.ModifyBom(entity));
         }
 
         [HttpDelete]
-        public ResultObj DeleteBom(int BomAutoId)
+        public async Task<ResultObj> DeleteBom(int BomAutoId)
         {
-            return _bom.DeleteBom(BomAutoId);
+            return await Task.Run(() => _bom.DeleteBom(BomAutoId));
         }
     }
 }

@@ -40,7 +40,7 @@ namespace Meals.BLL.ImplementBLL
             }
             catch (Exception ex)
             {
-                _logger.LogInformation(ex.ToString());
+                _logger.LogError(ex.ToString());
                 result.Message = "帳號或密碼錯誤";
             }
             return result;

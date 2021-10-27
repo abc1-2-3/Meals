@@ -22,16 +22,16 @@ namespace Meals.Controllers
         }
 
         [HttpGet]
-        public PageOrderDTO SerchOrder(string status, int? page)
+        public async Task<PageOrderDTO> SerchOrder(string status, int? page)
         {
-            return _serch.SerchOrder(status,page);
+            return await Task.Run(() => _serch.SerchOrder(status,page));
         }
 
         
         [HttpGet]
-        public PageProductlDTO SerchDetail(string Type, int? page)
+        public async Task<PageProductlDTO> SerchDetail(string Type, int? page)
         {
-            return _serch.SerchProduct(Type, page);
+            return await Task.Run(() => _serch.SerchProduct(Type, page));
         }
     }
 }

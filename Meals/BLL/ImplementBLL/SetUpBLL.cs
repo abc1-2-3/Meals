@@ -38,7 +38,7 @@ namespace Meals.BLL.ImplementBLL
             }
             catch (Exception ex)
             {
-                _logger.LogInformation(ex.ToString());
+                _logger.LogInformation(ex.StackTrace);
             }
             return result;
         }

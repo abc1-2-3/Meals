@@ -31,6 +31,8 @@ namespace Meals.BLL.ImplementBLL
             var result = _item.CreateItem(item);
 
 
+            _logger.LogDebug("OK");
+
             return result;
         }
 
@@ -45,7 +47,7 @@ namespace Meals.BLL.ImplementBLL
             };
             var result = _item.ModifyItem(item);
 
-
+            _logger.LogDebug("OK");
             return result;
         }
 
@@ -55,10 +57,12 @@ namespace Meals.BLL.ImplementBLL
             if (_context.Boms.Where(x => x.ItemId == entity).Count() < 1 )
             {
                 result = _item.RemoveItem(entity);
+                _logger.LogDebug("OK");
             }
             else
             {
                 result.Message = "關聯到BOM不可刪除 ";
+                _logger.LogInformation("關聯到BOM不可刪除");
             }
             return result;
         }

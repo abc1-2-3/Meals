@@ -22,25 +22,25 @@ namespace Meals.Controllers
             _product = product;
         }
         [HttpPost]
-        public ResultObj CreateProduct(ProductDTO entity)
+        public async Task<ResultObj> CreateProduct(ProductDTO entity)
         {
-            return _product.CreateProduct(entity);
+            return await Task.Run(() => _product.CreateProduct(entity));
         }
         [HttpPut]
-        public ResultObj ModifyProduct(ProductDTO entity)
+        public async Task<ResultObj> ModifyProduct(ProductDTO entity)
         {
-            return _product.ModifyProduct(entity);
+            return await Task.Run(() => _product.ModifyProduct(entity));
         }
 
         [HttpDelete]
-        public ResultObj RemoveProduct(int ProductId)
+        public async Task<ResultObj> RemoveProduct(int ProductId)
         {
-            return _product.RemoveProduct(ProductId);
+            return await Task.Run(() => _product.RemoveProduct(ProductId));
         }
         [HttpPut]
-        public ResultObj CancelProduct(int ProductId)
+        public async Task<ResultObj> CancelProduct(int ProductId)
         {
-            return _product.CancelProduct(ProductId);
+            return await Task.Run(() => _product.CancelProduct(ProductId));
         }
     }
 }

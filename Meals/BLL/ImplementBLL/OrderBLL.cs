@@ -28,52 +28,65 @@ namespace Meals.BLL.ImplementBLL
         {
             var result = new ResultObj();
             //加點，可增加訂單明細的餐點，但是訂單狀態為處理中或成立，且加點餐點的物料足夠時才可以加點 
-
-            foreach (var detail in entity.OrderDetails)
+            try
             {
-                var stock = from b in _context.Boms.Where(x => x.ProductId == detail.ProductId)
-                            join i in _context.Items on b.ItemId equals i.ItemId
-                            select new UsageItemDTO
-                            {
-                                enough = (i.ItemStock - detail.Amount * b.ItemUsageAmount) > 0
-                            };
-                if (!stock.FirstOrDefault().enough)
+                foreach (var detail in entity.OrderDetails)
                 {
-                    result.Message = "無法提供此餐點";
-                    return result;
+                    var stock = from b in _context.Boms.Where(x => x.ProductId == detail.ProductId)
+                                join i in _context.Items on b.ItemId equals i.ItemId
+                                select new UsageItemDTO
+                                {
+                                    enough = (i.ItemStock - detail.Amount * b.ItemUsageAmount) > 0
+                                };
+                    if (!stock.FirstOrDefault().enough)
+                    {
+                        result.Message = "無法提供此餐點";
+                        return result;
+                    }
                 }
-            }
 
 
-            var order= _context.Orders.Where(x => x.OrderId == entity.OrderId && (x.OrderStatus == "處理中" || x.OrderStatus == "成立"));
-            if (order.Count() > 0)
-            {
-                var list = new List<OrderDetail>(entity.OrderDetails.Select(x => new OrderDetail()
+                var order = _context.Orders.Where(x => x.OrderId == entity.OrderId && (x.OrderStatus == "處理中" || x.OrderStatus == "成立"));
+                if (order.Count() > 0)
                 {
-                    CreateDate = DateTime.Now,
-                    OrderId = entity.OrderId,
-                    ProductId = x.ProductId,
-                    Amount = x.Amount,
-                    Status = x.Status
-                }));
-                result = _orderDetail.CreateOrderDetail(list);
+                    var list = new List<OrderDetail>(entity.OrderDetails.Select(x => new OrderDetail()
+                    {
+                        CreateDate = DateTime.Now,
+                        OrderId = entity.OrderId,
+                        ProductId = x.ProductId,
+                        Amount = x.Amount,
+                        Status = x.Status
+                    }));
+                    result = _orderDetail.CreateOrderDetail(list);
 
+                }
+                else result.Message = "訂單狀態為處理中或成立時才可加點";
             }
-            else result.Message = "訂單狀態為處理中或成立時才可加點";
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.StackTrace);
+            }
             return result;
         }
 
         public ResultObj CancelOrder(string entity)
         {
             var result =new ResultObj();
-            var order=_context.Orders.Where(x => x.OrderId == entity&&x.OrderStatus=="成立");
-            if (order.Count() > 0)
+            try
             {
-                result = _order.CancelOrder(entity);
-                if (result.Result)
-                    result = _orderDetail.CancelOrderDetail(entity);
+                var order = _context.Orders.Where(x => x.OrderId == entity && x.OrderStatus == "成立");
+                if (order.Count() > 0)
+                {
+                    result = _order.CancelOrder(entity);
+                    if (result.Result)
+                        result = _orderDetail.CancelOrderDetail(entity);
+                }
+                else result.Message = "訂單狀態為成立時才可取消";
             }
-            else result.Message = "訂單狀態為成立時才可取消";
+            catch (Exception ex)
+            {
+                _logger.LogInformation(ex.StackTrace);
+            }
             return result;
         }
 
@@ -135,7 +148,7 @@ namespace Meals.BLL.ImplementBLL
             }
             catch (Exception ex)
             {
-                _logger.LogInformation(ex.ToString());
+                _logger.LogError(ex.StackTrace);
             }
             return result;
         }
@@ -145,33 +158,41 @@ namespace Meals.BLL.ImplementBLL
         public ResultObj ModifyStatusOrder(OrderSratusDTO entity)
         {
             ResultObj result = new ResultObj();
-            OrderSratusDTO order = new OrderSratusDTO()
+            try
             {
-                ModifyDate = DateTime.Now,
-                OrderId = entity.OrderId,
-                Status=entity.Status
-            };
+                OrderSratusDTO order = new OrderSratusDTO()
+                {
+                    ModifyDate = DateTime.Now,
+                    OrderId = entity.OrderId,
+                    Status = entity.Status
+                };
 
-            List<ComsumeItemDTO> comsumeItems = new List<ComsumeItemDTO>();
-            var detail = _context.OrderDetails.Where(x => x.OrderId == entity.OrderId);
-            foreach (var od in detail)
-            {
-                var stock = from b in _context.Boms.Where(x => x.ProductId == od.ProductId)
-                            join i in _context.Items on b.ItemId equals i.ItemId
-                            select new ComsumeItemDTO
-                            {
-                                ItemId = i.ItemId,
-                                ItemStock = i.ItemStock - od.Amount * b.ItemUsageAmount,
-                                ModifyDate = DateTime.Now
-                            };
-                comsumeItems.Add(stock.FirstOrDefault());
+                List<ComsumeItemDTO> comsumeItems = new List<ComsumeItemDTO>();
+                var detail = _context.OrderDetails.Where(x => x.OrderId == entity.OrderId);
+                foreach (var od in detail)
+                {
+                    var stock = from b in _context.Boms.Where(x => x.ProductId == od.ProductId)
+                                join i in _context.Items on b.ItemId equals i.ItemId
+                                select new ComsumeItemDTO
+                                {
+                                    ItemId = i.ItemId,
+                                    ItemStock = i.ItemStock - od.Amount * b.ItemUsageAmount,
+                                    ModifyDate = DateTime.Now
+                                };
+                    comsumeItems.Add(stock.FirstOrDefault());
+                }
+                result = _item.ConsumeItem(comsumeItems);
+
+                if (result.Result == false) return result;
+
+                result = _order.ModifyStatusOrder(order);
+                result = _orderDetail.ModifyStatusOrderDetail(order);
             }
-            result = _item.ConsumeItem(comsumeItems);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.StackTrace);
+            }
 
-            if (result.Result == false) return result;
-
-            result = _order.ModifyStatusOrder(order);
-            result = _orderDetail.ModifyStatusOrderDetail(order);
             return result;
 
             
@@ -179,44 +200,50 @@ namespace Meals.BLL.ImplementBLL
         public ResultObj ModifyOrderDetail(OrderDTO entity)
         {
             ResultObj result = new ResultObj();
-            //修改餐點明細，需檢查該餐點明細的狀態是否為成立，成立才可以修改 
-            var order = _context.OrderDetails.Where(x => x.OrderId == entity.OrderId &&  x.Status == "成立");
-            if (order.Count() > 0)
+            try
             {
-                List<OrderDetail> detail = new List<OrderDetail>();
-                foreach (var details in entity.OrderDetails)
+                //修改餐點明細，需檢查該餐點明細的狀態是否為成立，成立才可以修改 
+                var order = _context.OrderDetails.Where(x => x.OrderId == entity.OrderId && x.Status == "成立");
+                if (order.Count() > 0)
                 {
-                    OrderDetail detail1 = new OrderDetail()
+                    List<OrderDetail> detail = new List<OrderDetail>();
+                    foreach (var details in entity.OrderDetails)
                     {
-                        ModifyDate = DateTime.Now,
-                        Amount = details.Amount,
-                        OrderDetailId = details.OrderDetailId,
-                        ProductId = details.ProductId
-                    }; detail.Add(detail1);
-                };
-                result = _orderDetail.ModifyOrderDetail(detail);
+                        OrderDetail detail1 = new OrderDetail()
+                        {
+                            ModifyDate = DateTime.Now,
+                            Amount = details.Amount,
+                            OrderDetailId = details.OrderDetailId,
+                            ProductId = details.ProductId
+                        }; detail.Add(detail1);
+                    };
+                    result = _orderDetail.ModifyOrderDetail(detail);
 
-                var order2 = from p in _context.Products
-                            join d in _context.OrderDetails on p.ProductId equals d.ProductId
-                            group new { p, d } by new { d.OrderId } into g
-                            select new Order()
-                            {
-                                CreateDate = DateTime.Now,
-                                CustomerId = entity.CustomerId,
-                                OrderPrice = g.Sum(x => x.d.Amount * x.p.ProductPrice),
-                                OrderStatus = "成立",
-                                OrderSubject = entity.OrderSubject,
-                                TableNumber = entity.TableNumber
-                            };
-                result = _order.ModifyOrder(order2.FirstOrDefault());
+                    var order2 = from p in _context.Products
+                                 join d in _context.OrderDetails on p.ProductId equals d.ProductId
+                                 group new { p, d } by new { d.OrderId } into g
+                                 select new Order()
+                                 {
+                                     CreateDate = DateTime.Now,
+                                     CustomerId = entity.CustomerId,
+                                     OrderPrice = g.Sum(x => x.d.Amount * x.p.ProductPrice),
+                                     OrderStatus = "成立",
+                                     OrderSubject = entity.OrderSubject,
+                                     TableNumber = entity.TableNumber
+                                 };
+                    result = _order.ModifyOrder(order2.FirstOrDefault());
 
 
+                }
+                else
+                {
+                    result.Message = "狀態成立時才能修改";
+                }
             }
-            else
+            catch (Exception ex)
             {
-                result.Message = "狀態成立時才能修改";
+                _logger.LogError(ex.StackTrace);
             }
-
             return result;
 
         }

@@ -21,25 +21,25 @@ namespace Meals.Controllers
             _order = order;
         }
         [HttpPost]
-        public ResultObj CreateOrder(Order2DTO entity)
+        public async Task<ResultObj> CreateOrder(Order2DTO entity)
         {
-            return _order.CreateOrder(entity);
+            return await Task.Run(() => _order.CreateOrder(entity));
         }
         [HttpPut]
-        public ResultObj ModifyOrderDetail(OrderDTO entity)
+        public async Task<ResultObj> ModifyOrderDetail(OrderDTO entity)
         {
-            return _order.ModifyOrderDetail(entity);
+            return await Task.Run(() => _order.ModifyOrderDetail(entity));
         }
 
         [HttpDelete]
-        public ResultObj ModifyStatusOrder(OrderSratusDTO entity)
+        public async Task<ResultObj> ModifyStatusOrder(OrderSratusDTO entity)
         {
-            return _order.ModifyStatusOrder(entity);
+            return await Task.Run(() => _order.ModifyStatusOrder(entity));
         }
         [HttpPut]
-        public ResultObj CancelOrder(string orderId)
+        public async Task<ResultObj> CancelOrder(string orderId)
         {
-            return _order.CancelOrder(orderId);
+            return await Task.Run(() => _order.CancelOrder(orderId));
         }
     }
 }
