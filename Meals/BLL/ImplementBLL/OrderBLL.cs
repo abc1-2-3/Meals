@@ -105,23 +105,18 @@ namespace Meals.BLL.ImplementBLL
                 }
 
                 var order = from p in _context.Products
-                            join d in _context.OrderDetails on p.ProductId equals d.ProductId
+                            join d in entity.OrderDetails on p.ProductId equals d.ProductId
                             group new { p, d } by 1 into g
                             select new Order()
                             {
                                 OrderPrice = g.Sum(x => x.d.Amount * x.p.ProductPrice),
-                            };
-                var order3 = order.FirstOrDefault();
-                Order order2 = new Order()
-                {
-                    CreateDate = DateTime.Now,
-                    OrderId = number,
-                    CustomerId = entity.CustomerId,
-                    OrderPrice = order3.OrderPrice,
-                    OrderStatus = "成立",
-                    OrderSubject = entity.OrderSubject,
-                    TableNumber = entity.TableNumber
-                };
+                                CreateDate = DateTime.Now,
+                                OrderId = number,
+                                CustomerId = entity.CustomerId,
+                                OrderStatus = "成立",
+                                OrderSubject = entity.OrderSubject,
+                                TableNumber = entity.TableNumber
+                            };                
                 result = _order.CreateOrder(order.FirstOrDefault());
                 if (result.Result == false) return result;
 
