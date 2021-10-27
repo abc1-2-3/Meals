@@ -70,11 +70,8 @@ namespace Meals.BLL.ImplementBLL
                 result = _product.RemoveProduct(entity);
                 
             }
-            else
-            {
-                result.Message= "曾經被下過訂單或是有關連到BOM不可以刪除";
-                return result;
-            }
+            else result.Message= "曾經被下過訂單或是有關連到BOM不可以刪除";
+
             return result;
         }
     }

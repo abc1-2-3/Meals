@@ -44,6 +44,7 @@ namespace Meals.Repository.ImplementRepository
             product.ProductPicture = entity.ProductPicture;
             product.ProductStatus = entity.ProductStatus;
             product.ProductType = entity.ProductType;
+            product.ProductPrice = entity.ProductPrice;
 
             var save = _context.SaveChanges();
 
@@ -99,7 +100,6 @@ namespace Meals.Repository.ImplementRepository
             }
             else
             {
-
                 result.Message = "失敗"; return result;
             }
         }

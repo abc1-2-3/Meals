@@ -11,4 +11,11 @@ namespace Meals.Models.DTO
         public string ItemName { get; set; }
         public int ItemStock { get; set; }
     }
+    public class ComsumeItemDTO
+    {
+        public int ItemId { get; set; }
+        public int ItemStock { get; set; }
+        public DateTime? ModifyDate { get; set; }
+
+    }
 }

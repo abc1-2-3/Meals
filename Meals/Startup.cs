@@ -42,12 +42,17 @@ namespace Meals
             services.AddScoped<IModifyCustomerBLL, ModifyCustomerBLL>();
             services.AddScoped<ILogInBLL, LogInBLL>();
             services.AddScoped<IOrderBLL, OrderBLL>();
+            services.AddScoped<ISerchBLL, SerchBLL>();
             services.AddScoped<IProductBLL, ProductBLL>();
+            services.AddScoped<IBomBLL, BomBLL>();
+            services.AddScoped<IItemBLL, ItemBLL>();
             services.AddScoped<ISetUpBLL, SetUpBLL>();
             services.AddScoped<IBomRepository, BomRepository>();
             services.AddScoped<IItemRepository, ItemRepository>();
             services.AddScoped<IProductRepository, ProductRepository>();
             services.AddScoped<ICustomerRepository, CustomerRepository>();
+            services.AddScoped<IOrderRepository, OrderRepository>();
+            services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
             services.AddLogging(m => m.AddNLog());
             services.AddDbContext<DBContext>(option => option.UseSqlServer(Configuration.GetConnectionString("DBConStr")));
             services.AddControllers();

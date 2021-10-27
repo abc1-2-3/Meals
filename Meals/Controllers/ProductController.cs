@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Meals.Controllers
 {
-    [Route("api/[controller][action]")]
+    [Route("api/[controller]/[action]")]
     [ApiController]
     [Authorize]
 
