@@ -20,10 +20,15 @@ namespace Meals.Controllers
             _modifycustomer = modifycustomer;
         }
         [Authorize]
-        [HttpPost]
-        public async Task<ResultObj> SetUpCustomer(CustomerDTO entity)
+        [HttpPut]
+        public async Task<ResultObj> ModifyCustomer(CustomerDTO entity)
+
         {
-            return await Task.Run(() => _modifycustomer.ModifyCustomer(entity));
+            ResultObj result2 = new ResultObj();
+            var paylosd = User.Claims.FirstOrDefault(p => p.Type == "CustomerAccount").Value;
+            if (paylosd == entity.CustomerAccount)
+                return await Task.Run(() => _modifycustomer.ModifyCustomer(entity));
+            else return await Task.Run(() => result2);
         }
     }
 }

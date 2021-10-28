@@ -13,5 +13,6 @@ namespace Meals.Repository.InterfaceRepository
         public ResultObj ModifyOrderDetail(List<OrderDetail> entity);
         public ResultObj CancelOrderDetail(string orderid);
         public ResultObj ModifyStatusOrderDetail(OrderSratusDTO entity);
+        public ResultObj FTPModifyStatusOrderDetail(List<int> entity);
     }
 }

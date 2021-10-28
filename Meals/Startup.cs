@@ -40,6 +40,7 @@ namespace Meals
             services.AddSingleton<Jwt>();
             services.AddSingleton<MD5>();
             services.AddScoped<IModifyCustomerBLL, ModifyCustomerBLL>();
+            services.AddScoped<Mail>();
             services.AddScoped<ILogInBLL, LogInBLL>();
             services.AddScoped<IOrderBLL, OrderBLL>();
             services.AddScoped<ISerchBLL, SerchBLL>();

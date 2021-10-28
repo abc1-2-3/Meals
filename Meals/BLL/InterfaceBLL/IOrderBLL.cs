@@ -13,5 +13,6 @@ namespace Meals.BLL.InterfaceBLL
         public ResultObj CancelOrder(string entity);
         public ResultObj AdditionOrder(OrderDTO entity);
         public ResultObj ModifyOrderDetail(OrderDTO entity);
+        public ResultObj FTPModifyStatusOrder(string entity);
     }
 }

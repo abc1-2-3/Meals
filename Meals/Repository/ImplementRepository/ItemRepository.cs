@@ -22,7 +22,7 @@ namespace Meals.Repository.ImplementRepository
             foreach(var item in entity)
             {
                 var items=Item().Where(x => x.ItemId == item.ItemId).FirstOrDefault();
-                items.ItemStock -= item.ItemStock;
+                items.ItemStock = item.ItemStock;
                 items.ModifyDate = item.ModifyDate;
             }
             ResultObj result = new ResultObj();
@@ -30,9 +30,9 @@ namespace Meals.Repository.ImplementRepository
             if (save > 0)
             {
                 result.Result = true;
-                result.Message = "成功";
+                result.Message = "消耗物料成功";
             }
-            else result.Message = "失敗";
+            else result.Message = "消耗物料失敗";
 
             return result;
 

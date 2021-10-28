@@ -2,6 +2,7 @@
 using Meals.Models.Context;
 using Meals.Models.DTO;
 using Meals.Repository.InterfaceRepository;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -27,6 +28,7 @@ namespace Meals.BLL.ImplementBLL
                 string MD5password = _md5.getMd5Method2(entity.CustomerPassword);
                 Customer customer = new Customer()
                 {
+                    CustomerId=entity.CustomerId,
                     ModifyDate=DateTime.Now,
                     CustomerAccount=entity.CustomerAccount,
                     CustomerEmail=entity.CustomerEmail,
@@ -34,6 +36,7 @@ namespace Meals.BLL.ImplementBLL
                     CustomerPassword= MD5password
                 };
                 result = _customer.ModifyCustomer(customer);
+                _logger.LogInformation("ModifyCustomer OK");
                 return result;
 
             }

@@ -36,6 +36,7 @@ namespace Meals.BLL.ImplementBLL
                     result.Message = serializeToken;
                     result.Key = user.CustomerId.ToString();
                 }
+                _logger.LogInformation("LogIn OK");
                 return result;
             }
             catch (Exception ex)

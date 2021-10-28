@@ -68,8 +68,10 @@ namespace Meals.Repository.ImplementRepository
 
             ResultObj result = new ResultObj();
             var save = _context.SaveChanges();
-            if (save > 0) result.Result = true;
-            else  result.Message = "修改失敗";
+            if (save > 0) { result.Result = true;
+                result.Message = "修改成功";
+            }
+            else result.Message = "修改失敗";
             return result;
         }
 
@@ -78,6 +80,17 @@ namespace Meals.Repository.ImplementRepository
             var order = _context.Orders.Where(x => x.OrderId == entity.OrderId).FirstOrDefault();
             order.ModifyDate = entity.ModifyDate;
             order.OrderStatus = entity.Status;
+            ResultObj result = new ResultObj();
+            var save = _context.SaveChanges();
+            if (save > 0) result.Result = true;
+            else result.Message = "修改失敗";
+            return result;
+        }
+        public ResultObj FTPModifyStatusOrder(string entity)
+        {
+            var order = _context.Orders.Where(x => x.OrderId == entity).FirstOrDefault();
+            order.ModifyDate = DateTime.Now;
+            order.OrderStatus ="完成";
             ResultObj result = new ResultObj();
             var save = _context.SaveChanges();
             if (save > 0) result.Result = true;

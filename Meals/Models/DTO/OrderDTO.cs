@@ -58,6 +58,17 @@ namespace Meals.Models.DTO
         public int OrderPrice { get; set; }
         public DateTime CreateDate { get; set; }
     }
+    public class SerchOrder2DTO
+    {
+        public int ProductId { get; set; }
+        public string OrderId { get; set; }
+        public string OrderSubject { get; set; }
+        public int TableNumber { get; set; }
+        public int CustomerId { get; set; }
+        public string OrderStatus { get; set; }
+        public int OrderPrice { get; set; }
+        public DateTime CreateDate { get; set; }
+    }
 
 
 }

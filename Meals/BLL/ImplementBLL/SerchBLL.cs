@@ -19,7 +19,7 @@ namespace Meals.BLL.ImplementBLL
 
         }
 
-        public PageOrderDTO SerchOrder(string status, int? page)
+        public PageOrderDTO SerchOrder( int? page, string status = null)
         {
             PageOrderDTO pagedto = new PageOrderDTO();
             try
@@ -54,11 +54,12 @@ namespace Meals.BLL.ImplementBLL
             }
             return null;
         }
-        public PageProductlDTO SerchProduct(string Type, int? page)
+        public PageProductlDTO SerchProduct(int? page,string Type= null)
         {
             PageProductlDTO pagedto = new PageProductlDTO();
             try
             {
+
                 var Products = _context.Products.Select(x => x);
                 if (Type != null) Products = Products.Where(x => x.ProductType == Type);
 
@@ -86,5 +87,35 @@ namespace Meals.BLL.ImplementBLL
             return null;
         }
 
+        public List<SerchOrder2DTO> SerchOrderQuartz(string Type = null)
+        {
+            try
+            {
+                var order = _context.Orders.Select(x => x);
+                if (Type != null) order = order.Where(x => x.OrderStatus == Type);
+                var serchOrder = from o in order
+                                 join d in _context.OrderDetails on o.OrderId equals d.OrderId
+                              join p in _context.Products on d.ProductId equals p.ProductId
+                              select new SerchOrder2DTO()
+                              {
+                                  ProductId=p.ProductId,
+                                  CreateDate = o.CreateDate,
+                                  CustomerId = o.CustomerId,
+                                  OrderPrice = o.OrderPrice,
+                                  OrderId = o.OrderId,
+                                  OrderStatus = o.OrderStatus,
+                                  OrderSubject = o.OrderSubject,
+                                  TableNumber = o.TableNumber
+                              };
+
+
+                return serchOrder.ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInformation(ex.StackTrace);
+            }
+            return null;
+        }
     }
 }

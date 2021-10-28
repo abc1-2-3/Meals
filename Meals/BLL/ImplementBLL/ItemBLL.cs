@@ -31,7 +31,7 @@ namespace Meals.BLL.ImplementBLL
             var result = _item.CreateItem(item);
 
 
-            _logger.LogDebug("OK");
+            _logger.LogDebug("OK"+ result.Key);
 
             return result;
         }
@@ -47,7 +47,7 @@ namespace Meals.BLL.ImplementBLL
             };
             var result = _item.ModifyItem(item);
 
-            _logger.LogDebug("OK");
+            _logger.LogDebug(" ModifyItem OK");
             return result;
         }
 

@@ -16,8 +16,10 @@ namespace Meals.BLL.ImplementBLL
         private readonly IOrderDetailRepository _orderDetail;
         private readonly DBContext _context;
         private readonly IItemRepository _item;
-        public OrderBLL(IItemRepository item,ILogger<OrderBLL> logger, DBContext context, IOrderRepository order, IOrderDetailRepository orderDetail) : base(logger)
+        private readonly Mail _mail;
+        public OrderBLL(Mail mail,IItemRepository item,ILogger<OrderBLL> logger, DBContext context, IOrderRepository order, IOrderDetailRepository orderDetail) : base(logger)
         {
+            _mail = mail;
             _orderDetail = orderDetail;
             _context = context;
             _order = order;
@@ -32,8 +34,8 @@ namespace Meals.BLL.ImplementBLL
             {
                 foreach (var detail in entity.OrderDetails)
                 {
-                    var stock = from b in _context.Boms.Where(x => x.ProductId == detail.ProductId)
-                                join i in _context.Items on b.ItemId equals i.ItemId
+                    var stock = from b in _context.Boms.Where(x => x.ProductId == detail.ProductId).ToList()
+                                join i in _context.Items.ToList() on b.ItemId equals i.ItemId
                                 select new UsageItemDTO
                                 {
                                     enough = (i.ItemStock - detail.Amount * b.ItemUsageAmount) > 0
@@ -41,6 +43,7 @@ namespace Meals.BLL.ImplementBLL
                     if (!stock.FirstOrDefault().enough)
                     {
                         result.Message = "無法提供此餐點";
+                        _logger.LogError("物料不足");
                         return result;
                     }
                 }
@@ -55,7 +58,7 @@ namespace Meals.BLL.ImplementBLL
                         OrderId = entity.OrderId,
                         ProductId = x.ProductId,
                         Amount = x.Amount,
-                        Status = x.Status
+                        Status = "成立"
                     }));
                     result = _orderDetail.CreateOrderDetail(list);
 
@@ -80,6 +83,7 @@ namespace Meals.BLL.ImplementBLL
                     result = _order.CancelOrder(entity);
                     if (result.Result)
                         result = _orderDetail.CancelOrderDetail(entity);
+                    _logger.LogDebug("CancelOrder OK");
                 }
                 else result.Message = "訂單狀態為成立時才可取消";
             }
@@ -113,11 +117,12 @@ namespace Meals.BLL.ImplementBLL
                     if (!stock.Select(x=>x.enough).FirstOrDefault())
                     {
                         result.Message = "無法提供此餐點";
+                        _logger.LogError("物料不足");
                         return result;
                     }
                 }
 
-                var order = from p in _context.Products
+                var order = from p in _context.Products.ToList()
                             join d in entity.OrderDetails on p.ProductId equals d.ProductId
                             group new { p, d } by 1 into g
                             select new Order()
@@ -140,16 +145,25 @@ namespace Meals.BLL.ImplementBLL
                     OrderId = order.FirstOrDefault().OrderId,
                     ProductId = x.ProductId,
                     Amount = x.Amount,
-                    Status = x.Status
+                    Status = "成立"
                 }));
 
                 result = _orderDetail.CreateOrderDetail(list);
+
+                EMail Email = new EMail();
+                Email.Subject = "客戶訂單成立";
+                Email.Text = "訂單" + number + "成立";
+                Email.ToMail = "LiAn.Li@beltom.com.tw";
+
+                _mail.EMail(Email);
+                _logger.LogInformation("CreateOrder OK");
                 return result;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex.StackTrace);
             }
+
             return result;
         }
            
@@ -160,33 +174,30 @@ namespace Meals.BLL.ImplementBLL
             ResultObj result = new ResultObj();
             try
             {
-                OrderSratusDTO order = new OrderSratusDTO()
-                {
-                    ModifyDate = DateTime.Now,
-                    OrderId = entity.OrderId,
-                    Status = entity.Status
-                };
 
-                List<ComsumeItemDTO> comsumeItems = new List<ComsumeItemDTO>();
+                //List<ComsumeItemDTO> comsumeItems = new List<ComsumeItemDTO>();
                 var detail = _context.OrderDetails.Where(x => x.OrderId == entity.OrderId);
-                foreach (var od in detail)
+                foreach (var od in detail.ToList())
                 {
-                    var stock = from b in _context.Boms.Where(x => x.ProductId == od.ProductId)
-                                join i in _context.Items on b.ItemId equals i.ItemId
+                    var stock = from d in detail.ToList()
+                                join b in _context.Boms.ToList() on d.ProductId equals b.ProductId
+                                join i in _context.Items.ToList() on b.ItemId equals i.ItemId                                
                                 select new ComsumeItemDTO
                                 {
                                     ItemId = i.ItemId,
-                                    ItemStock = i.ItemStock - od.Amount * b.ItemUsageAmount,
+                                    ItemStock = i.ItemStock - d.Amount * b.ItemUsageAmount,
                                     ModifyDate = DateTime.Now
                                 };
-                    comsumeItems.Add(stock.FirstOrDefault());
+                    var comsume = stock.ToList();
+                    result = _item.ConsumeItem(comsume);
                 }
-                result = _item.ConsumeItem(comsumeItems);
+               
 
                 if (result.Result == false) return result;
 
-                result = _order.ModifyStatusOrder(order);
-                result = _orderDetail.ModifyStatusOrderDetail(order);
+                result = _order.ModifyStatusOrder(entity);
+                result = _orderDetail.ModifyStatusOrderDetail(entity);
+                _logger.LogInformation("ModifyStatusOrder OK");
             }
             catch (Exception ex)
             {
@@ -203,27 +214,38 @@ namespace Meals.BLL.ImplementBLL
             try
             {
                 //修改餐點明細，需檢查該餐點明細的狀態是否為成立，成立才可以修改 
-                var order = _context.OrderDetails.Where(x => x.OrderId == entity.OrderId && x.Status == "成立");
+                var order = _context.OrderDetails.Where(x => x.OrderId == entity.OrderId && x.Status == "成立" );
                 if (order.Count() > 0)
                 {
                     List<OrderDetail> detail = new List<OrderDetail>();
                     foreach (var details in entity.OrderDetails)
                     {
-                        OrderDetail detail1 = new OrderDetail()
+                        if (_context.OrderDetails.Where(x => x.OrderDetailId == details.OrderDetailId).Count() > 0)
                         {
-                            ModifyDate = DateTime.Now,
-                            Amount = details.Amount,
-                            OrderDetailId = details.OrderDetailId,
-                            ProductId = details.ProductId
-                        }; detail.Add(detail1);
+                            OrderDetail detail1 = new OrderDetail()
+                            {
+                                ModifyDate = DateTime.Now,
+                                Amount = details.Amount,
+                                OrderDetailId = details.OrderDetailId,
+                                ProductId = details.ProductId
+                            };
+                            detail.Add(detail1);
+                        }
+                        else
+                        {
+                            _logger.LogInformation("修改的OrderdetaiID沒有");
+                            return result;
+                        }
+                        
                     };
                     result = _orderDetail.ModifyOrderDetail(detail);
 
-                    var order2 = from p in _context.Products
-                                 join d in _context.OrderDetails on p.ProductId equals d.ProductId
-                                 group new { p, d } by new { d.OrderId } into g
+                    var order2 = from p in _context.Products.ToList()
+                                 join d in _context.OrderDetails.Where(x=>x.OrderId==entity.OrderId) on p.ProductId equals d.ProductId
+                                 group new { p, d } by 1 into g
                                  select new Order()
                                  {
+                                     OrderId=entity.OrderId,
                                      CreateDate = DateTime.Now,
                                      CustomerId = entity.CustomerId,
                                      OrderPrice = g.Sum(x => x.d.Amount * x.p.ProductPrice),
@@ -245,6 +267,28 @@ namespace Meals.BLL.ImplementBLL
                 _logger.LogError(ex.StackTrace);
             }
             return result;
+
+        }
+
+
+        public ResultObj FTPModifyStatusOrder(string entity)
+        {
+            ResultObj result = new ResultObj();
+            try
+            {
+                var order = _context.OrderDetails.Where(x => x.OrderId == entity).Select(x=>x.OrderDetailId).ToList();
+                result = _order.FTPModifyStatusOrder(entity);
+                result = _orderDetail.FTPModifyStatusOrderDetail(order);
+
+                _logger.LogInformation("Update CompleteOrder OK");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.StackTrace);
+            }
+
+            return result;
+
 
         }
     }

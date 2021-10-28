@@ -24,14 +24,14 @@ namespace Meals.Controllers
         [HttpGet]
         public async Task<PageOrderDTO> SerchOrder(string status, int? page)
         {
-            return await Task.Run(() => _serch.SerchOrder(status,page));
+            return await Task.Run(() => _serch.SerchOrder(page,status));
         }
 
         
         [HttpGet]
         public async Task<PageProductlDTO> SerchDetail(string Type, int? page)
         {
-            return await Task.Run(() => _serch.SerchProduct(Type, page));
+            return await Task.Run(() => _serch.SerchProduct( page,Type));
         }
     }
 }

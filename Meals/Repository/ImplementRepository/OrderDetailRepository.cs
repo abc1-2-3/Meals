@@ -94,5 +94,24 @@ namespace Meals.Repository.ImplementRepository
             else result.Message = "修改失敗";
             return result;
         }
+        public ResultObj FTPModifyStatusOrderDetail(List<int> entity)
+        {
+            for(int i = 0; i < entity.Count; i++)
+            {
+                var detail=_context.OrderDetails.Where(x => x.OrderDetailId == entity[i]).FirstOrDefault();
+                detail.ModifyDate = DateTime.Now;
+                detail.Status = "完成";
+            }
+            
+            ResultObj result = new ResultObj();
+            var save = _context.SaveChanges();
+            if (save > 0)
+            {
+                result.Result = true;
+                result.Message = "修改成功";
+            }
+            else result.Message = "修改失敗";
+            return result;
+        }
     }
 }

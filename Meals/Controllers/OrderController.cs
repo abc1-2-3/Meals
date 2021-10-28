@@ -31,7 +31,7 @@ namespace Meals.Controllers
             return await Task.Run(() => _order.ModifyOrderDetail(entity));
         }
 
-        [HttpDelete]
+        [HttpPut]
         public async Task<ResultObj> ModifyStatusOrder(OrderSratusDTO entity)
         {
             return await Task.Run(() => _order.ModifyStatusOrder(entity));
@@ -40,6 +40,11 @@ namespace Meals.Controllers
         public async Task<ResultObj> CancelOrder(string orderId)
         {
             return await Task.Run(() => _order.CancelOrder(orderId));
+        }
+        [HttpPost]
+        public async Task<ResultObj> AdditionOrder(OrderDTO orderId)
+        {
+            return await Task.Run(() => _order.AdditionOrder(orderId));
         }
     }
 }

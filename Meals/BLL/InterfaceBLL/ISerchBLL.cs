@@ -8,7 +8,9 @@ namespace Meals.BLL.InterfaceBLL
 {
     public interface ISerchBLL
     {
-        public PageOrderDTO SerchOrder(string status, int? page);
-        public PageProductlDTO SerchProduct(string Type, int? page);
+        public PageOrderDTO SerchOrder(int? page, string status = null);
+        public PageProductlDTO SerchProduct(int? page, string Type );
+
+        public List<SerchOrder2DTO> SerchOrderQuartz(string Type = null);
     }
 }
